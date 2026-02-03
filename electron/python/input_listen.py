@@ -1,6 +1,6 @@
 from evdev import InputDevice, list_devices, ecodes
 import asyncio, json, sys
-
+#Make sure evdev is installed on system
 keyboards = []
 controllers = []
 devices = [InputDevice(path) for path in list_devices()]
@@ -37,7 +37,6 @@ async def read_device(device, device_type):
     async for event in device.async_read_loop():
         # Buttons / Keys
         if event.type == ecodes.EV_KEY:
-            ##readButton()
             data = {
                 "type": device_type,
                 "device": device.name,
@@ -57,14 +56,13 @@ async def read_device(device, device_type):
                 "code": event.code,
                 "value": event.value
             }
-            sys.stdout.write(json.dumps(data) + "\n")
+            #print("PYTHON SAYS:", json.dumps(data)+"\n",flush=True)
+            sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 0}
 
-##device_type,device_name(multiple may be added in future),device_input,device_value
-##readInput[JS side](type,device_name,input_type,code,value?[doesn't matter to me]) --> {"Device_Type","Device_Name",InputType+Output? ==> "A"?,key_status}Tells which SVG should be pressed and triggered. 
-#
+
 
 loop = asyncio.get_event_loop()
 
