@@ -1,6 +1,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('electronAPI', {
-  onKeyEvent: (callback) => ipcRenderer.on('key-event', (e, data) => callback(data)),
-  onControllerEvent: (callback) => ipcRenderer.on('controller-event', (e, data) => callback(data)),
+console.log("Preload script loaded");
+
+contextBridge.exposeInMainWorld('api', {
+  onInputEvent: (callback) => ipcRenderer.on('input-event', (_, data) => callback(data))
 });

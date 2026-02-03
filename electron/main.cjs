@@ -9,8 +9,9 @@ function createWindow() {
     width: 1000,
     height: 700,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.cjs'),
+      preload: path.join(__dirname,'preload.cjs'),
       contextIsolation: true,
+      nodeIntegration:false
     },
   });
 
@@ -23,8 +24,22 @@ app.whenReady().then(() => {
   const pyPath = path.join(__dirname, 'python', 'input_listen.py');
   const py = spawn('python3', [pyPath]);
   py.stdout.on('data', (data) => {
-    console.log("PYTHON SAYS:", data.toString());
-  });
+    //console.log(data.toString())
+    const lines = data.toString().trim().split("\n");
 
+    lines.forEach(line => {
+    try {
+      const event = JSON.parse(line);
+      sendEvent(event);   // send OBJECT not string
+    } catch (err) {
+        console.error("Bad JSON:", line);
+      }
+    });
+  });
   
 });
+
+function sendEvent(event)
+{
+  win.webContents.send("input-event", event);
+}

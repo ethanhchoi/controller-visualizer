@@ -1,23 +1,23 @@
 from evdev import InputDevice, list_devices, ecodes
-import asyncio, json
-
-devices = [InputDevice(path) for path in list_devices()]
-print("Scanning devices...\n")
+import asyncio, json, sys
 
 keyboards = []
 controllers = []
-
+devices = [InputDevice(path) for path in list_devices()]
 #Disable the Touchpad on Controller
 #Try to disable mouse inputs completely because we don't need that read
 ###Fix to top: If connected to virtual usb, counts as virtual controller. 
 
 for dev in devices:
+
     caps = dev.capabilities()
     #All keys from a keybaord
     keys = caps.get(ecodes.EV_KEY, [])
+    
+    #Abs = Joystick Movement
     abs_axes = caps.get(ecodes.EV_ABS, [])
+    #Wheel Position
     rel_axes = caps.get(ecodes.EV_REL, [])
-
 
     # Detect keyboard
     if ecodes.KEY_A in keys:
@@ -25,18 +25,19 @@ for dev in devices:
         print("Keyboard detected:", dev.path, dev.name)
 
     # Detect controller / joystick / gamepad
-    #ecodes.EV_ABS in caps and 
     elif ecodes.EV_ABS in caps and ecodes.EV_KEY in caps:
         controllers.append(dev)
         print("Controller detected:", dev.path, dev.name)
 
 print("\nStarting input listeners...\n")
 
+
 #Type keyboard for mouse
 async def read_device(device, device_type):
     async for event in device.async_read_loop():
         # Buttons / Keys
         if event.type == ecodes.EV_KEY:
+            ##readButton()
             data = {
                 "type": device_type,
                 "device": device.name,
@@ -44,7 +45,8 @@ async def read_device(device, device_type):
                 "code": event.code,
                 "value": event.value  # 1=down, 0=up, 2=hold
             }
-            print(json.dumps(data), flush=True)
+            sys.stdout.write(json.dumps(data)+ "\n")
+            sys.stdout.flush()
 
         # Analog sticks / triggers
         elif event.type == ecodes.EV_ABS:
@@ -55,8 +57,14 @@ async def read_device(device, device_type):
                 "code": event.code,
                 "value": event.value
             }
-            print(json.dumps(data), flush=True)
+            sys.stdout.write(json.dumps(data) + "\n")
+            sys.stdout.flush()
+#[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 
+#[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 0}
 
+##device_type,device_name(multiple may be added in future),device_input,device_value
+##readInput[JS side](type,device_name,input_type,code,value?[doesn't matter to me]) --> {"Device_Type","Device_Name",InputType+Output? ==> "A"?,key_status}Tells which SVG should be pressed and triggered. 
+#
 
 loop = asyncio.get_event_loop()
 
