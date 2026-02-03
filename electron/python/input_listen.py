@@ -36,13 +36,15 @@ print("\nStarting input listeners...\n")
 async def read_device(device, device_type):
     async for event in device.async_read_loop():
         # Buttons / Keys
+        #Mouse only has a handful of inputs
+        #ecodes.KEY[event.code] --> KEY_A (No caps involved are read here)
         if event.type == ecodes.EV_KEY:
             data = {
                 "type": device_type,
                 "device": device.name,
                 "input": "button",
-                "code": event.code,
-                "value": event.value  # 1=down, 0=up, 2=hold
+                "code": ecodes.KEY[event.code],
+                "status": event.value  # 1=down, 0=up, 2=hold
             }
             sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
@@ -54,7 +56,7 @@ async def read_device(device, device_type):
                 "device": device.name,
                 "input": "axis",
                 "code": event.code,
-                "value": event.value
+                "status": event.value
             }
             #print("PYTHON SAYS:", json.dumps(data)+"\n",flush=True)
             sys.stdout.write(json.dumps(data)+ "\n")

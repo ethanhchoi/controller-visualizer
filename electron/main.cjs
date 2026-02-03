@@ -24,29 +24,29 @@ app.whenReady().then(() => {
   const pyPath = path.join(__dirname, 'python', 'input_listen.py');
   const py = spawn('python3', ['-u',pyPath]);
 
-  py.stderr.on('data', (data) => {
-    console.error('PY STDERR:', data.toString());
-  });
+  // py.stderr.on('data', (data) => {
+  //   console.error('PY STDERR:', data.toString());
+  // });
 
-  py.on('error', (err) => {
-    console.error('Failed to start python process:', err);
-  });
+  // py.on('error', (err) => {
+  //   console.error('Failed to start python process:', err);
+  // });
 
-  py.on('close', (code, signal) => {
-    console.error(`python process closed with code ${code}, signal ${signal}`);
-  });
+  // py.on('close', (code, signal) => {
+  //   console.error(`python process closed with code ${code}, signal ${signal}`);
+  // });
 
   py.stdout.on('data', (data) => {
     console.log(data.toString())
     const lines = data.toString().trim().split("\n");
 
     lines.forEach(line => {
-    console.log(line)
+    //console.log(line)
       try {
       const event = JSON.parse(line);
-      console.log(event)
       sendEvent(event);   // send OBJECT not string
     } catch (err) {
+      //Not everything is a JSON line. Potentially Ignore, display message. 
         console.error("Bad JSON:", line);
       }
     });
