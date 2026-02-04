@@ -43,8 +43,8 @@ async def read_device(device, device_type):
                 "type": device_type,
                 "device": device.name,
                 "input": "button",
-                "code": ecodes.KEY[event.code],
-                "status": event.value  # 1=down, 0=up, 2=hold
+                "code": ecodes.KEY[event.code][len("KEY_"):].lower(), #String Concats until KEY_###
+                "value": event.value  # 1=down, 0=up, 2=hold
             }
             sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
