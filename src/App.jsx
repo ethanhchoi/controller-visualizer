@@ -15,9 +15,32 @@ function App() {
   ];
 
 
+  /*PS5 Controller Layout
+    BTN_NORTH = Triangle
+    BTN_WEST = Square
+    BTN_A = X
+    BTN_B = Circle
+
+    Left Siode:
+    -1: Top,Left
+    1: Bottom,Right
+    16 --> Horizontal Axis
+    17 --> Vertical Axis
+    
+  */
+  /*Mouse Layout
+    leftClick: BTN_LEFT,
+    rightClick: BTN_RIGHT
+    I won't add side buttons unless you believe it's necessary
+  */
+
+
+  //PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 
+  //PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 0} 
+
   useEffect(() => {
     window.api.onInputEvent((event) => {
-      //console.log("Python Event:",event);
+      console.log("Python Event:",event);
       
       //button vs axis
       if(event.input==="axis") return;//Returns a blank for now

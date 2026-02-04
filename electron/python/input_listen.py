@@ -3,6 +3,7 @@ import asyncio, json, sys
 #Make sure evdev is installed on system
 keyboards = []
 controllers = []
+mouse = []
 devices = [InputDevice(path) for path in list_devices()]
 #Disable the Touchpad on Controller
 #Try to disable mouse inputs completely because we don't need that read
@@ -20,12 +21,14 @@ for dev in devices:
     rel_axes = caps.get(ecodes.EV_REL, [])
 
     # Detect keyboard
-    if ecodes.KEY_A in keys:
+    if rel_axes and (ecodes.REL_X in rel_axes or ecodes.REL_Y in rel_axes):
+        mouse.append(dev)
+        print("Mouse Detected", dev.path, dev.name)        
+    elif ecodes.KEY_A in keys and ecodes.KEY_Z in keys:
         keyboards.append(dev)
         print("Keyboard detected:", dev.path, dev.name)
-
     # Detect controller / joystick / gamepad
-    elif ecodes.EV_ABS in caps and ecodes.EV_KEY in caps:
+    elif abs_axes and keys:
         controllers.append(dev)
         print("Controller detected:", dev.path, dev.name)
 
@@ -35,10 +38,35 @@ print("\nStarting input listeners...\n")
 #Type keyboard for mouse
 async def read_device(device, device_type):
     async for event in device.async_read_loop():
-        # Buttons / Keys
-        #Mouse only has a handful of inputs
+        
         #ecodes.KEY[event.code] --> KEY_A (No caps involved are read here)
-        if event.type == ecodes.EV_KEY:
+
+        #I want to create a way to reject all touchpad. 
+        #I might do if event.device.contains("Touchpad") --> Reject
+        #if(device.name.lower().contains("touchpad")):
+        #    return None
+
+        if event.type == ecodes.EV_KEY and event.code in ecodes.BTN:
+            #Mouse + Controller Buttons here
+
+            #Convert the Event Code to a Button Event
+            btn_code = ecodes.BTN[event.code]
+            #Left Click or 272 has two use cases, use first use case
+            if(len(btn_code)<4):
+                btn_code = btn_code[0]
+            #Create Object
+            data = {
+                "type": device_type,
+                "device": device.name,
+                "input": "button",
+                "code": btn_code[len("BTN_"):],
+                "value": event.value
+            }
+            print("Mouse/Button:", data, flush=True)
+            sys.stdout.write(json.dumps(data) + "\n")
+            sys.stdout.flush()
+            
+        elif event.type == ecodes.EV_KEY:
             data = {
                 "type": device_type,
                 "device": device.name,
@@ -46,6 +74,7 @@ async def read_device(device, device_type):
                 "code": ecodes.KEY[event.code][len("KEY_"):].lower(), #String Concats until KEY_###
                 "value": event.value  # 1=down, 0=up, 2=hold
             }
+            print("Button Pressed: "+data["code"],flush = True)
             sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
 
@@ -58,7 +87,7 @@ async def read_device(device, device_type):
                 "code": event.code,
                 "status": event.value
             }
-            #print("PYTHON SAYS:", json.dumps(data)+"\n",flush=True)
+            print("Stick Data:", json.dumps(data)+"\n",flush=True)
             sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 
@@ -73,5 +102,8 @@ for dev in keyboards:
 
 for dev in controllers:
     loop.create_task(read_device(dev, "controller"))
+
+for dev in mouse:
+    loop.create_task(read_device(dev, "mouse"))
 
 loop.run_forever()
