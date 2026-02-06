@@ -70,7 +70,7 @@ async def read_device(device, device_type):
                 "type": device_type,
                 "device": device.name,
                 "input": "button",
-                "code": btn_code[len("BTN_"):],
+                "code": btn_code[len("BTN_"):].lower(),
                 "value": event.value
             }
             print("Mouse/Button:", data, flush=True)
