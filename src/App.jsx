@@ -1,11 +1,14 @@
 import { useEffect,useState } from 'react';
 import {PressedKeyIcons} from "../assets/Keyboard/pressed"
 import {KeyIcons} from "../assets/Keyboard/unpressed"
+import {PressedControllerIcons} from "../assets/Controller/pressed"
+import {ControllerIcons} from "../assets/Controller/unpressed"
+
 function App() {
 
   //Will append/remove everytime a key is pressed
   const [buttonPressed,setButtonPressed] = useState({});//Pop add remove
-  const [controllerValue,setControllerValue] = useState({});
+  const [controllerPressed,setControllerValue] = useState({});
   const [mouseValue,setMouseValue] = useState({});
   const [controllerAxis,setAxisValue] = useState({});
   
@@ -19,6 +22,13 @@ function App() {
   ["leftctrl","leftmeta","leftalt","space","rightalt","delete","rightctrl"]
   ];
 
+  const CONTROLLER_LAYOUT = [
+    ["left","right"],
+    ["tl","tr"],
+    ["ab","al","ar","at"],
+    ["select","center","start"],
+    ["north","west","a","b"]
+  ];
 
   /*PS5 Controller Layout
     BTN_NORTH = Triangle
@@ -32,6 +42,9 @@ function App() {
     16 --> Horizontal Axis
     17 --> Vertical Axis
     
+
+    Trigger 2(L), 5(R)
+    Controller Stick 0,1 : 3,4
   */
   /*Mouse Layout
     leftClick: BTN_LEFT,
@@ -56,7 +69,8 @@ function App() {
             axis_values[event.code] = true;
           return axis_values;
         })
-        //Code:17, Status: -1
+        //Code 16, Status -1,0,1
+        //Code:17, Status: -1,0,1
       }
       //Returns a blank for now
       //The rest of these will be button/mouse inputs
@@ -74,6 +88,7 @@ function App() {
       }
       if(event.type === "controller")
       {
+        //console.log(PressedControllerIcons);
         setControllerValue(prev => {
           const button_list = {...prev}//Previous results
           if(event.value === 0)
@@ -105,16 +120,15 @@ function App() {
     <p>
       Text will be placed here
     </p>
-    <Keyboard layout = {KEY_LAYOUT} pressedButtons = {buttonPressed}/>
     
-
-
+    <Keyboard layout = {KEY_LAYOUT} pressedButtons = {buttonPressed}/>
+    <Controller layout = {CONTROLLER_LAYOUT} controllerPressed = {controllerPressed}/>
   </div>);
 
 }
 export default App;
 
-function Keyboard({layout,pressedButtons,buttonSize=73})
+function Keyboard({layout,pressedButtons,buttonSize=53})
 {
   let key_size = 53;
   let key_height_scale = 53/50;
@@ -140,6 +154,7 @@ function Keyboard({layout,pressedButtons,buttonSize=73})
             }
             
             key_size = key in custom_size_key ? buttonSize * custom_size_key[key] : buttonSize
+            
             return (
               <Icon
                 key={key}
@@ -151,6 +166,38 @@ function Keyboard({layout,pressedButtons,buttonSize=73})
           })}
         </div>
       ))}
+    </div>
+  )
+}
+
+function Controller({layout,controllerPressed,buttonSize=73})
+{
+  return (
+    <div className = "Controller">
+      {layout.map((row,rowIndex) => (
+        <div key = {rowIndex} className = "Controller Button">
+          {row.map(button => {
+            const isPressed = !!controllerPressed[button];
+            const Icon = isPressed ? PressedControllerIcons[button]:ControllerIcons[button];
+            
+            if(!Icon)
+            {
+              console.warn("Missing Button for ",button,isPressed);
+              return null;
+            }
+
+            return(
+            <Icon
+              key = {button}
+              width =  {buttonSize}
+              height = {1.25 * buttonSize}
+              className =  {isPressed ? "pressed" : ""}
+            />)
+          })}
+        </div>
+      ))
+    }
+
     </div>
   )
 }

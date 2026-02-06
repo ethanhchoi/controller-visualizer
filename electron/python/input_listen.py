@@ -39,6 +39,9 @@ print("\nStarting input listeners...\n")
 async def read_device(device, device_type):
     async for event in device.async_read_loop():
         
+        #if(event.device.lower() == "touchpad"):
+            
+
         #ecodes.KEY[event.code] --> KEY_A (No caps involved are read here)
 
         #I want to create a way to reject all touchpad. 
@@ -47,10 +50,18 @@ async def read_device(device, device_type):
         #    return None
 
         if event.type == ecodes.EV_KEY and event.code in ecodes.BTN:
-            #Mouse + Controller Buttons here
-
             #Convert the Event Code to a Button Event
             btn_code = ecodes.BTN[event.code]
+            
+            #Mouse + Controller Buttons here
+
+            #X Direction Button X_B
+            #Y Direction Button Y_B
+            #if(event.code == 16):
+            #    btn_code = "X_B"
+            #if(event.code == 17):
+            #    btn_code = "Y_B"
+            
             #Left Click or 272 has two use cases, use first use case
             if(len(btn_code)<4):
                 btn_code = btn_code[0]
