@@ -3,6 +3,10 @@ import {PressedKeyIcons} from "../assets/Keyboard/pressed"
 import {KeyIcons} from "../assets/Keyboard/unpressed"
 import {PressedControllerIcons} from "../assets/Controller/pressed"
 import {ControllerIcons} from "../assets/Controller/unpressed"
+import  ControllerOutline from "../assets/Controller/outline.svg?react"
+//import {MouseIcons} from "../assets/Mouse/unpressed"
+//import {PressedMouseIcons} from "../Mouse/"
+
 
 function App() {
 
@@ -174,6 +178,7 @@ function Controller({layout,controllerPressed,buttonSize=73})
 {
   return (
     <div className = "Controller">
+      <ControllerOutline className = "Controller-Bg" style = {{fill:"blue"}}/>
       {layout.map((row,rowIndex) => (
         <div key = {rowIndex} className = "Controller Button">
           {row.map(button => {
@@ -195,9 +200,16 @@ function Controller({layout,controllerPressed,buttonSize=73})
             />)
           })}
         </div>
-      ))
-    }
-
+      ))}
     </div>
   )
+}
+function Mouse({buttonSize=74})
+{
+
+  return(<div className='Mouse'>
+    <div className = "Mouse Content">
+
+    </div>
+  </div>)
 }
