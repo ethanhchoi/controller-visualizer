@@ -1,10 +1,41 @@
 from evdev import InputDevice, list_devices, ecodes, categorize
 import asyncio, json, sys
+import pygame
+
+
 #Make sure evdev is installed on system
 keyboards = []
 controllers = []
 mouse = []
 devices = [InputDevice(path) for path in list_devices()]
+pygame.init()
+pygame.joystick.init()
+joysticks = {}
+
+print("Detected:",pygame.joystick.get_count(),"joysticks")
+#Initializes Joystick
+#Takes both Left and Right
+#Not gonna create any Hot swappable shit- Takes too much to input.
+#Im gonna tell them to quit and retry again
+
+
+#Create Array of Joysticks
+for controller_device in range(pygame.joystick.get_count()):
+    #Calls All Joysticks + Initializes
+
+    joystick = pygame.joystick.Joystick(controller_device)
+    #Initializes Joystick
+    joystick.init()
+    
+    joysticks[js.get_name()] = js
+    vibrateController(js)
+
+def vibrateController(joystick_device,vibration_max=5.0,time=750):
+    #Unique Vibration pattern probably like
+    #-.-
+    joystick_device.rumble(1.0,vibration_max,time)
+
+
 #Disable the Touchpad on Controller
 #Try to disable mouse inputs completely because we don't need that read
 ###Fix to top: If connected to virtual usb, counts as virtual controller. 
@@ -29,6 +60,8 @@ for dev in devices:
         print("Keyboard detected:", dev.path, dev.name)
     # Detect controller / joystick / gamepad
     elif abs_axes and keys:
+        #Reject Touchpad here ####################
+
         controllers.append(dev)
         print("Controller detected:", dev.path, dev.name)
 
@@ -38,18 +71,6 @@ print("\nStarting input listeners...\n")
 #Type keyboard for mouse
 async def read_device(device, device_type):
     async for event in device.async_read_loop():
-        
-
-        #if(event.device.lower() == "touchpad"):
-            
-
-        #ecodes.KEY[event.code] --> KEY_A (No caps involved are read here)
-
-        #I want to create a way to reject all touchpad. 
-        #I might do if event.device.contains("Touchpad") --> Reject
-        #if(device.name.lower().contains("touchpad")):
-        #    return None
-
         if event.type == ecodes.EV_KEY and event.code in ecodes.BTN:
             #Convert the Event Code to a Button Event
             btn_code = ecodes.BTN[event.code]
@@ -90,16 +111,28 @@ async def read_device(device, device_type):
 
         # Analog sticks / triggers
         elif event.type == ecodes.EV_ABS:
+            if(event.code == 2 or event.code == 5):
+                #If triggers, else
+                data = {
+                    "type": device_type,
+                    "device": device.name,
+                    "input": "axis",
+                    "code": event.code,
+                    "value": event.value
+                }
+            else:
+                pygame.event.pump()
                 
-            data = {
-                "type": device_type,
-                "device": device.name,
-                "input": "axis",
-                "code": event.code,
-                "value": event.value
-            }
+                controller = joysticks[device.name]
+                data = {
+                    "type": device_type,
+                    "device": device.name,
+                    "input": "axis",
+                    "code": event.code,
+                    "value": [controller.get_axis(0),controller.get_axis(1),
+                    controller.get_axis(3),controller.get_axis(4)]
+                }
 
-            #print("Stick Data:", json.dumps(data)+"\n",flush=True)
             sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 

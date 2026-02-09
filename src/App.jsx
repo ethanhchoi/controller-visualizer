@@ -4,8 +4,9 @@ import {KeyIcons} from "../assets/Keyboard/unpressed"
 import {PressedControllerIcons} from "../assets/Controller/pressed"
 import {ControllerIcons} from "../assets/Controller/unpressed"
 import  ControllerOutline from "../assets/Controller/outline.svg?react"
-//import {MouseIcons} from "../assets/Mouse/unpressed"
-//import {PressedMouseIcons} from "../Mouse/"
+import {MouseIcons} from "../assets/Mouse/sides"
+import MouseOutline from "../assets/Mouse/body.svg?react" 
+
 
 const KEY_LAYOUT = [
   ["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"],
@@ -33,10 +34,6 @@ function App() {
   const [mouseValue,setMouseValue] = useState({});
   const [controllerAxis,setAxisValue] = useState({});
   
-  //Assign to Per Device....?
-
-  
-
   //Store 2 Axis: {"L":[X,Y],"R":[X,Y]}
   useEffect(() => {
     window.api.onInputEvent((event) => {
@@ -45,9 +42,9 @@ function App() {
       //Arbitary example
       //[0 - 80] [81 - 160] [160 - 256]
       //[0 - 256]
-
       if(event.input==="axis")
       {
+        //Axis Means stick / Trigger movement btw
         setAxisValue(prev => {
           const axis_values = {...prev};
           //"L_X"
@@ -64,40 +61,38 @@ function App() {
       }
       //Returns a blank for now
       //The rest of these will be button/mouse inputs
-      
-      if(event.type === "mouse")
+      switch(event.type)
       {
-        setMouseValue(prev => {
+        case "mouse":
+          setMouseValue(prev => {
           const mouse_inputs = {...prev}//Previous results
           if(event.value === 0)
             delete mouse_inputs[event.code]
           else
             mouse_inputs[event.code] =  true;
           return mouse_inputs; 
-        })
-      }
-      if(event.type === "controller")
-      {
-
-        setControllerValue(prev => {
+          })
+          break;
+        case "controller":
+          setControllerValue(prev => {
           const button_list = {...prev}//Previous results
           if(event.value === 0)
             delete button_list[event.code]
           else
             button_list[event.code] =  true;
           return button_list; 
-        })
-      }
-      if(event.type === "keyboard")
-      {
-        setButtonPressed(prev => {
-        const next = {...prev};//takes previous values as a dict
-        if(event.value === 0)
-          delete next[event.code]
-          else
-            next[event.code] = true //Key is pressed
-          return next;
-        })
+          })
+          break;
+        case "keyboard":
+          setButtonPressed(prev => {
+          const next = {...prev};//takes previous values as a dict
+          if(event.value === 0)
+            delete next[event.code]
+            else
+              next[event.code] = true //Key is pressed
+            return next;
+          })
+          break;
       }
     })},[])
   //I'll ask him if we need to track recent text. 
@@ -149,7 +144,7 @@ function Keyboard({layout,pressedButtons,buttonSize=53})
                 key={key}
                 width={key in custom_size_key ? buttonSize * custom_size_key[key] : buttonSize}
                 height = {key_height_scale * buttonSize}
-                style = {{ fill:isPressed ? "green":"red"}}
+                style = {{fill:isPressed ? "green":"red"}}
                 className={isPressed ? "pressed" : ""}
               />
             );
@@ -166,35 +161,7 @@ function Keyboard({layout,pressedButtons,buttonSize=53})
 
 function loadDevices({})
 {
-
 }
-//0 => All the way Left. 
-//121/122 => Centerpoint
-//255 => All the way Right.
-
-//128 Deadzone here
-
-/*PS5 Controller Layout
-  BTN_NORTH = Triangle
-  BTN_WEST = Square
-  BTN_A = X
-  BTN_B = Circle
-
-  Left Siode:
-  -1: Top,Left
-  1: Bottom,Right
-  16 --> Horizontal Axis
-  17 --> Vertical Axis
-  
-
-  Trigger 2(L), 5(R)
-  Controller Stick 0,1 : 3,4
-*/
-/*Mouse Layout
-  leftClick: BTN_LEFT,
-  rightClick: BTN_RIGHT
-  I won't add side buttons unless you believe it's necessary
-*/
 
 
 function Controller({layout,controllerPressed,buttonSize=73})
@@ -206,7 +173,7 @@ function Controller({layout,controllerPressed,buttonSize=73})
         <div key = {rowIndex} className = "Controller Button">
           {row.map(button => {
             const isPressed = !!controllerPressed[button];
-            const Icon = ControllerIcons[button];//isPressed ? PressedControllerIcons[button]:
+            const Icon = ControllerIcons[button];
             
             if(!Icon)
             {
@@ -228,13 +195,11 @@ function Controller({layout,controllerPressed,buttonSize=73})
   )
 }
 
-
 function Mouse({buttonSize=74})
 {
 
-  return(<div className='Mouse'>
-    <div className = "Mouse Content">
+  return(
+  <div className='Mouse'>  
 
-    </div>
   </div>)
 }
