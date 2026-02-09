@@ -1,4 +1,4 @@
-from evdev import InputDevice, list_devices, ecodes
+from evdev import InputDevice, list_devices, ecodes, categorize
 import asyncio, json, sys
 #Make sure evdev is installed on system
 keyboards = []
@@ -39,6 +39,7 @@ print("\nStarting input listeners...\n")
 async def read_device(device, device_type):
     async for event in device.async_read_loop():
         
+
         #if(event.device.lower() == "touchpad"):
             
 
@@ -61,8 +62,6 @@ async def read_device(device, device_type):
             #    btn_code = "X_B"
             #if(event.code == 17):
             #    btn_code = "Y_B"
-            
-            #Left Click or 272 has two use cases, use first use case
             if(len(btn_code)<4):
                 btn_code = btn_code[0]
             #Create Object
@@ -91,14 +90,16 @@ async def read_device(device, device_type):
 
         # Analog sticks / triggers
         elif event.type == ecodes.EV_ABS:
+                
             data = {
                 "type": device_type,
                 "device": device.name,
                 "input": "axis",
                 "code": event.code,
-                "status": event.value
+                "value": event.value
             }
-            print("Stick Data:", json.dumps(data)+"\n",flush=True)
+
+            #print("Stick Data:", json.dumps(data)+"\n",flush=True)
             sys.stdout.write(json.dumps(data)+ "\n")
             sys.stdout.flush()
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 

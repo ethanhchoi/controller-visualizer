@@ -7,7 +7,24 @@ import  ControllerOutline from "../assets/Controller/outline.svg?react"
 //import {MouseIcons} from "../assets/Mouse/unpressed"
 //import {PressedMouseIcons} from "../Mouse/"
 
+const KEY_LAYOUT = [
+  ["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"],
+  ["tab","q","w","e","r","t","y","u","i","o","p","leftbrace","rightbrace","backslash"],
+  ["capslock","a","s","d","f","g","h","j","k","l","semicolon","apostrophe","enter"],
+  ["leftshift","z","x","c","v","b","n","m","comma","dot","slash","rightshift"],
+  ["leftctrl","leftmeta","leftalt","space","rightalt","delete","rightctrl"]
+  ];
 
+const CONTROLLER_LAYOUT = [
+  ["left","right"],
+  ["tl","tr"],
+  ["ab","al","ar","at"],
+  ["select","center","start"],
+  ["north","west","a","b"]
+];
+const MOUSE_LAYOUT = [
+  ["left","right"],
+]
 function App() {
 
   //Will append/remove everytime a key is pressed
@@ -18,59 +35,28 @@ function App() {
   
   //Assign to Per Device....?
 
-  const KEY_LAYOUT = [
-  ["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"],
-  ["tab","q","w","e","r","t","y","u","i","o","p","leftbrace","rightbrace","backslash"],
-  ["capslock","a","s","d","f","g","h","j","k","l","semicolon","apostrophe","enter"],
-  ["leftshift","z","x","c","v","b","n","m","comma","dot","slash","rightshift"],
-  ["leftctrl","leftmeta","leftalt","space","rightalt","delete","rightctrl"]
-  ];
+  
 
-  const CONTROLLER_LAYOUT = [
-    ["left","right"],
-    ["tl","tr"],
-    ["ab","al","ar","at"],
-    ["select","center","start"],
-    ["north","west","a","b"]
-  ];
-
-  /*PS5 Controller Layout
-    BTN_NORTH = Triangle
-    BTN_WEST = Square
-    BTN_A = X
-    BTN_B = Circle
-
-    Left Siode:
-    -1: Top,Left
-    1: Bottom,Right
-    16 --> Horizontal Axis
-    17 --> Vertical Axis
-    
-
-    Trigger 2(L), 5(R)
-    Controller Stick 0,1 : 3,4
-  */
-  /*Mouse Layout
-    leftClick: BTN_LEFT,
-    rightClick: BTN_RIGHT
-    I won't add side buttons unless you believe it's necessary
-  */
-
-
+  //Store 2 Axis: {"L":[X,Y],"R":[X,Y]}
   useEffect(() => {
     window.api.onInputEvent((event) => {
-      console.log("Python Event:",event);
       
-      //button vs axis
+      //[0 - 256]
+      //Arbitary example
+      //[0 - 80] [81 - 160] [160 - 256]
+      //[0 - 256]
+
       if(event.input==="axis")
       {
         setAxisValue(prev => {
           const axis_values = {...prev};
-          //if()//If the input is valid
-          if(event.status === 0)
-            delete axis_values[event.code]
-          else
-            axis_values[event.code] = true;
+          //"L_X"
+          //"L_Y"
+          //"R_X"
+          //"R_Y"
+          //If Within Deadzone, Don't move
+          //if(event.value )
+          axis_values[event.type] = event.value;
           return axis_values;
         })
         //Code 16, Status -1,0,1
@@ -92,7 +78,7 @@ function App() {
       }
       if(event.type === "controller")
       {
-        //console.log(PressedControllerIcons);
+
         setControllerValue(prev => {
           const button_list = {...prev}//Previous results
           if(event.value === 0)
@@ -113,7 +99,6 @@ function App() {
           return next;
         })
       }
-      
     })},[])
   //I'll ask him if we need to track recent text. 
   //Options to choose your own color? 
@@ -134,7 +119,7 @@ export default App;
 
 function Keyboard({layout,pressedButtons,buttonSize=53})
 {
-  let key_size = 53;
+  //let key_size = 53;
   let key_height_scale = 53/50;
   let custom_size_key = {
     "backspace":1.925,"tab":1.51,"backslash":1.41,"capslock":1.89,"enter":2.08,
@@ -156,14 +141,15 @@ function Keyboard({layout,pressedButtons,buttonSize=53})
               console.warn("Missing Key for ",key,isPressed);
               return null;
             }
-            
-            key_size = key in custom_size_key ? buttonSize * custom_size_key[key] : buttonSize
+            //Apply multiplyer to special keys to scale with the rest of the keyboard
+            //key_size = key in custom_size_key ? buttonSize * custom_size_key[key] : buttonSize
             
             return (
               <Icon
                 key={key}
-                width={key_size}
+                width={key in custom_size_key ? buttonSize * custom_size_key[key] : buttonSize}
                 height = {key_height_scale * buttonSize}
+                style = {{ fill:isPressed ? "green":"red"}}
                 className={isPressed ? "pressed" : ""}
               />
             );
@@ -174,6 +160,43 @@ function Keyboard({layout,pressedButtons,buttonSize=53})
   )
 }
 
+// This function should be able to load all detected devices 
+//function setAxis({})
+// Assign them a device and set output per device to that one specific device
+
+function loadDevices({})
+{
+
+}
+//0 => All the way Left. 
+//121/122 => Centerpoint
+//255 => All the way Right.
+
+//128 Deadzone here
+
+/*PS5 Controller Layout
+  BTN_NORTH = Triangle
+  BTN_WEST = Square
+  BTN_A = X
+  BTN_B = Circle
+
+  Left Siode:
+  -1: Top,Left
+  1: Bottom,Right
+  16 --> Horizontal Axis
+  17 --> Vertical Axis
+  
+
+  Trigger 2(L), 5(R)
+  Controller Stick 0,1 : 3,4
+*/
+/*Mouse Layout
+  leftClick: BTN_LEFT,
+  rightClick: BTN_RIGHT
+  I won't add side buttons unless you believe it's necessary
+*/
+
+
 function Controller({layout,controllerPressed,buttonSize=73})
 {
   return (
@@ -183,7 +206,7 @@ function Controller({layout,controllerPressed,buttonSize=73})
         <div key = {rowIndex} className = "Controller Button">
           {row.map(button => {
             const isPressed = !!controllerPressed[button];
-            const Icon = isPressed ? PressedControllerIcons[button]:ControllerIcons[button];
+            const Icon = ControllerIcons[button];//isPressed ? PressedControllerIcons[button]:
             
             if(!Icon)
             {
@@ -196,7 +219,7 @@ function Controller({layout,controllerPressed,buttonSize=73})
               key = {button}
               width =  {buttonSize}
               height = {1.25 * buttonSize}
-              className =  {isPressed ? "pressed" : ""}
+              style = {{fill: isPressed ? "blue" : "green"}}
             />)
           })}
         </div>
@@ -204,6 +227,8 @@ function Controller({layout,controllerPressed,buttonSize=73})
     </div>
   )
 }
+
+
 function Mouse({buttonSize=74})
 {
 
