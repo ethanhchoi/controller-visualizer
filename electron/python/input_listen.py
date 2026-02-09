@@ -1,7 +1,7 @@
 from evdev import InputDevice, list_devices, ecodes, categorize
 import asyncio, json, sys
 import pygame
-
+from time import sleep
 
 #Make sure evdev is installed on system
 keyboards = []
@@ -18,7 +18,6 @@ print("Detected:",pygame.joystick.get_count(),"joysticks")
 #Not gonna create any Hot swappable shit- Takes too much to input.
 #Im gonna tell them to quit and retry again
 
-
 #Create Array of Joysticks
 for controller_device in range(pygame.joystick.get_count()):
     #Calls All Joysticks + Initializes
@@ -27,14 +26,15 @@ for controller_device in range(pygame.joystick.get_count()):
     #Initializes Joystick
     joystick.init()
     
-    joysticks[js.get_name()] = js
-    vibrateController(js)
+    joysticks[joystick.get_name()] = joystick
 
-def vibrateController(joystick_device,vibration_max=5.0,time=750):
-    #Unique Vibration pattern probably like
-    #-.-
-    joystick_device.rumble(1.0,vibration_max,time)
-
+    #Makes Each Connected Controller Vibrate
+    try:
+        joystick.rumble(1.0, 5.0, 750)
+        sleep(0.7)
+        joystick.stop_rumble()
+    except e:
+        print("No Rumble for:",joystick.get_name())
 
 #Disable the Touchpad on Controller
 #Try to disable mouse inputs completely because we don't need that read
@@ -61,7 +61,6 @@ for dev in devices:
     # Detect controller / joystick / gamepad
     elif abs_axes and keys:
         #Reject Touchpad here ####################
-
         controllers.append(dev)
         print("Controller detected:", dev.path, dev.name)
 
@@ -121,16 +120,21 @@ async def read_device(device, device_type):
                     "value": event.value
                 }
             else:
+                #Updates Controller Values iff Axis event fires
                 pygame.event.pump()
-                
+                #If axis < 0.05 --> Don't fire
                 controller = joysticks[device.name]
+                #if(controller.get_axis(0) > 0.06 or controller.get_axis(1) > 0.06 or controller.get_axis(3) > 0.06 or controller.get_axis(4) > 0.06)
+                deadzone_value = lambda x: 0 if abs(x) < 0.06 else x
+                #[controller.get_axis(0),controller.get_axis(1),controller.get_axis(3),controller.get_axis()]
+                axes = [deadzone_value(controller.get_axis(0)),deadzone_value(controller.get_axis(1)),deadzone_value(controller.get_axis(3)),deadzone_value(controller.get_axis(4))]
+                
                 data = {
                     "type": device_type,
                     "device": device.name,
                     "input": "axis",
                     "code": event.code,
-                    "value": [controller.get_axis(0),controller.get_axis(1),
-                    controller.get_axis(3),controller.get_axis(4)]
+                    "value":axes 
                 }
 
             sys.stdout.write(json.dumps(data)+ "\n")

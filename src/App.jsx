@@ -1,7 +1,7 @@
 import { useEffect,useState } from 'react';
 import {PressedKeyIcons} from "../assets/Keyboard/pressed"
 import {KeyIcons} from "../assets/Keyboard/unpressed"
-import {PressedControllerIcons} from "../assets/Controller/pressed"
+//import {PressedControllerIcons} from "../assets/Controller/pressed"
 import {ControllerIcons} from "../assets/Controller/unpressed"
 import  ControllerOutline from "../assets/Controller/outline.svg?react"
 import {MouseIcons} from "../assets/Mouse/sides"
