@@ -1,4 +1,10 @@
+<<<<<<< HEAD
 <svg width="220" height="220" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
 <circle cx="110.397" cy="110.397" r="41" transform="rotate(135 110.397 110.397)" stroke="black" stroke-width="2"/>
 <circle cx="124.539" cy="125.247" r="31.5" transform="rotate(135 124.539 125.247)" fill="#89E0FF" stroke="black" stroke-width="2"/>
+=======
+<svg width="127" height="127" viewBox="0 0 127 127" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="59.397" cy="59.3971" r="41" transform="rotate(135 59.397 59.3971)" stroke="black" stroke-width="2"/>
+<circle cx="73.5391" cy="74.2462" r="31.5" transform="rotate(135 73.5391 74.2462)" fill="#89E0FF" stroke="black" stroke-width="2"/>
+>>>>>>> 6b6f092ed60f8be9255cb3dfb4ddce767a99cf04
 </svg>
