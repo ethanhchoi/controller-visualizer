@@ -6,7 +6,7 @@ import {ControllerIcons} from "../assets/Controller/unpressed"
 import  ControllerOutline from "../assets/Controller/outline.svg?react"
 import {MouseIcons} from "../assets/Mouse/sides"
 import MouseOutline from "../assets/Mouse/body.svg?react" 
-
+import {AxisIcons} from "../assets/Controller/joystick"
 
 const KEY_LAYOUT = [
   ["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"],
@@ -37,23 +37,17 @@ function App() {
   //Store 2 Axis: {"L":[X,Y],"R":[X,Y]}
   useEffect(() => {
     window.api.onInputEvent((event) => {
-      
-      //[0 - 256]
-      //Arbitary example
-      //[0 - 80] [81 - 160] [160 - 256]
-      //[0 - 256]
       if(event.input==="axis")
       {
         //Axis Means stick / Trigger movement btw
         setAxisValue(prev => {
           const axis_values = {...prev};
-          //"L_X"
-          //"L_Y"
-          //"R_X"
-          //"R_Y"
-          //If Within Deadzone, Don't move
-          //if(event.value )
-          axis_values[event.type] = event.value;
+          if(event.code ==  16 || event.code == 17)
+            //Arrow Axis -1,0,1
+            //event.code = av or ah
+            axis_values[event.code] = event.value
+          else
+            axis_values[event.type] = event.value;//Going to call {"controller":[]}
           return axis_values;
         })
         //Code 16, Status -1,0,1
@@ -106,7 +100,7 @@ function App() {
     </p>
     
     <Keyboard layout = {KEY_LAYOUT} pressedButtons = {buttonPressed}/>
-    <Controller layout = {CONTROLLER_LAYOUT} controllerPressed = {controllerPressed}/>
+    <Controller layout = {CONTROLLER_LAYOUT} controllerPressed = {controllerPressed} controllerAxis = {controllerAxis}/>
   </div>);
 
 }
@@ -156,16 +150,31 @@ function Keyboard({layout,pressedButtons,buttonSize=53})
 }
 
 // This function should be able to load all detected devices 
-//function setAxis({})
-// Assign them a device and set output per device to that one specific device
-
-function loadDevices({})
+function Axis({axis_value,axis_side,AxisIcons})
 {
+  //Loop through globbed_names
+  const icon_val = ["s-".concat((axis_value[axis_side] == null ? "cen" : axis_value[axis_side]).toString())]
+  const Icon = AxisIcons[icon_val]
+  return(
+    <div className = "ControllerAxis">
+      {
+        <Icon key = {icon_val}/>     
+      }
+    </div>
+  )
+
+}
+// Assign them a device and set output per device to that one specific device
+function Arrow({})
+{
+  
 }
 
 
-function Controller({layout,controllerPressed,buttonSize=73})
+function Controller({layout,controllerPressed,controllerAxis,buttonSize=73})
 {
+  //position:"absolute"
+  console.log("ControllerAxis:",controllerAxis["controller"])
   return (
     <div className = "Controller">
       <ControllerOutline className = "Controller-Bg" style = {{fill:"blue"}}/>
@@ -191,6 +200,8 @@ function Controller({layout,controllerPressed,buttonSize=73})
           })}
         </div>
       ))}
+      <Axis axis_value = {controllerAxis["controller"] || [null, null]} axis_side = {0} AxisIcons = {AxisIcons}/>
+      <Axis axis_value = {controllerAxis["controller"] || [null, null]} axis_side = {1} AxisIcons = {AxisIcons}/>
     </div>
   )
 }

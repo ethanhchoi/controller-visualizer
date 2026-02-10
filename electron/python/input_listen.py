@@ -2,7 +2,7 @@ from evdev import InputDevice, list_devices, ecodes, categorize
 import asyncio, json, sys
 import pygame
 from time import sleep
-
+import math
 #Make sure evdev is installed on system
 keyboards = []
 controllers = []
@@ -11,10 +11,13 @@ devices = [InputDevice(path) for path in list_devices()]
 pygame.init()
 pygame.joystick.init()
 joysticks = {}
+#simple_coords = True
+controller_axis = [0,45,90,135,180,225,270,315]
+last_coords = []
+arrow_axis = {16:"ah",17:"av"}
 
 print("Detected:",pygame.joystick.get_count(),"joysticks")
-#Initializes Joystick
-#Takes both Left and Right
+
 #Not gonna create any Hot swappable shit- Takes too much to input.
 #Im gonna tell them to quit and retry again
 
@@ -60,15 +63,14 @@ for dev in devices:
         print("Keyboard detected:", dev.path, dev.name)
     # Detect controller / joystick / gamepad
     elif abs_axes and keys:
-        #Reject Touchpad here ####################
         controllers.append(dev)
         print("Controller detected:", dev.path, dev.name)
 
 print("\nStarting input listeners...\n")
 
-
 #Type keyboard for mouse
 async def read_device(device, device_type):
+    global last_coords
     async for event in device.async_read_loop():
         if event.type == ecodes.EV_KEY and event.code in ecodes.BTN:
             #Convert the Event Code to a Button Event
@@ -82,9 +84,10 @@ async def read_device(device, device_type):
             #    btn_code = "X_B"
             #if(event.code == 17):
             #    btn_code = "Y_B"
+
+            #Default to the first_code option
             if(len(btn_code)<4):
                 btn_code = btn_code[0]
-            #Create Object
             data = {
                 "type": device_type,
                 "device": device.name,
@@ -119,26 +122,58 @@ async def read_device(device, device_type):
                     "code": event.code,
                     "value": event.value
                 }
-            else:
-                #Updates Controller Values iff Axis event fires
-                pygame.event.pump()
-                #If axis < 0.05 --> Don't fire
-                controller = joysticks[device.name]
-                #if(controller.get_axis(0) > 0.06 or controller.get_axis(1) > 0.06 or controller.get_axis(3) > 0.06 or controller.get_axis(4) > 0.06)
-                deadzone_value = lambda x: 0 if abs(x) < 0.06 else x
-                #[controller.get_axis(0),controller.get_axis(1),controller.get_axis(3),controller.get_axis()]
-                axes = [deadzone_value(controller.get_axis(0)),deadzone_value(controller.get_axis(1)),deadzone_value(controller.get_axis(3)),deadzone_value(controller.get_axis(4))]
-                
+                sys.stdout.write(json.dumps(data)+ "\n")
+                sys.stdout.flush()
+            elif(event.code == 16 or event.code == 17):
+                #These are the Directional arrow Buttons
+                #16|17 -1|0|1
+                #av = Arrow Vertical
+                #ah = Arrow Horizontal
+
                 data = {
                     "type": device_type,
                     "device": device.name,
-                    "input": "axis",
+                    "input": "button",#I treat this more as a button ngl
                     "code": event.code,
-                    "value":axes 
+                    "value": event.value
                 }
-
-            sys.stdout.write(json.dumps(data)+ "\n")
-            sys.stdout.flush()
+                sys.stdout.write(json.dumps(data)+ "\n")
+                sys.stdout.flush()
+            else:
+                #Updates Controller Values iff Axis event fires
+                pygame.event.pump()
+                #Get the Controller Associated with Event.
+                controller = joysticks[device.name]
+                #Apply Lambda function to all values here
+                deadzone_value = lambda x: 0 if abs(x) < 0.06 else round(x,2)
+                #If previous_axes = [0,0,0,0] --> Don't fire?
+                left_x,left_y,right_x,right_y = deadzone_value(controller.get_axis(0)),deadzone_value(controller.get_axis(1)),deadzone_value(controller.get_axis(3)),deadzone_value(controller.get_axis(4))
+                axis_coords = [None,None]
+                #Just means it didn't move...? 
+                if(left_x!=0 or left_y!=0):
+                    #Applies Cartesian Coordinates
+                    axis_coords[0] = (-1 * math.atan2(left_y,left_x) * (180/math.pi) + 360)%360
+                    #Applies Common Cartesian Angles
+                    axis_coords[0] = min(controller_axis,key = lambda deg:abs(deg-axis_coords[0]))
+                if(right_x!=0 or right_y!=0):
+                    #Applies Cartesian Coordinates
+                    axis_coords[1] = (-1 * math.atan2(right_y,right_x) * (180/math.pi)+360)%360
+                    #Converts into common angles for Svgs
+                    axis_coords[1]= min(controller_axis,key = lambda deg:abs(deg-axis_coords[1]))
+                
+                #Check both coords to not be none 
+                #If axis_coords aren't the same as the last input recorded
+                if(axis_coords!=last_coords):
+                    data = {
+                        "type": device_type,
+                        "device": device.name,
+                        "input": "axis",
+                        "code": "controller",
+                        "value":axis_coords 
+                    }
+                    last_coords = axis_coords.copy()
+                    sys.stdout.write(json.dumps(data)+ "\n")
+                    sys.stdout.flush()
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 1} 
 #[1] PYTHON SAYS: {"type": "keyboard", "device": "Logitech G Pro", "input": "button", "code": 272, "value": 0}
 
