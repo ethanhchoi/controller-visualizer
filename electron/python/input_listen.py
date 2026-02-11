@@ -122,6 +122,7 @@ async def read_device(device, device_type):
                     "code": event.code,
                     "value": event.value
                 }
+                print("Triggers",data)
                 sys.stdout.write(json.dumps(data)+ "\n")
                 sys.stdout.flush()
             elif(event.code == 16 or event.code == 17):
@@ -129,13 +130,23 @@ async def read_device(device, device_type):
                 #16|17 -1|0|1
                 #av = Arrow Vertical
                 #ah = Arrow Horizontal
+                #p = positive
+                #n = negative
 
+                #Dict = {16:"av_p"/"av_n", 17: "av_p"/"av_n"}
+                #This dictates direction of that specific axis
+                axis_dir = event.value
+                print(axis_dir)
+                if(event.value!=0):
+                    set_dir = "av" if(event.code==17) else "ah"#code
+                    set_opt = "_p" if(event.value == 1) else "_n"#val
+                    axis_dir = set_dir + set_opt
                 data = {
                     "type": device_type,
                     "device": device.name,
-                    "input": "button",#I treat this more as a button ngl
+                    "input": "button",
                     "code": event.code,
-                    "value": event.value
+                    "value": axis_dir
                 }
                 sys.stdout.write(json.dumps(data)+ "\n")
                 sys.stdout.flush()

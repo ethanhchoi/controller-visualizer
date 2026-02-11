@@ -19,13 +19,16 @@ const KEY_LAYOUT = [
 const CONTROLLER_LAYOUT = [
   ["left","right"],
   ["tl","tr"],
-  ["ab","al","ar","at"],
   ["select","center","start"],
   ["north","west","a","b"]
 ];
 const MOUSE_LAYOUT = [
   ["left","right"],
 ]
+//Arrow Value: {"ah_n":false}
+//arrowValue[event.code] = event.value
+//16:ah_n | ah_p | 0
+//17:av_n | av_p | 0
 function App() {
 
   //Will append/remove everytime a key is pressed
@@ -33,6 +36,7 @@ function App() {
   const [controllerPressed,setControllerValue] = useState({});
   const [mouseValue,setMouseValue] = useState({});
   const [controllerAxis,setAxisValue] = useState({});
+  //const [arrowValue,setArrowValue] = useState({});
   
   //Store 2 Axis: {"L":[X,Y],"R":[X,Y]}
   useEffect(() => {
@@ -42,12 +46,7 @@ function App() {
         //Axis Means stick / Trigger movement btw
         setAxisValue(prev => {
           const axis_values = {...prev};
-          if(event.code ==  16 || event.code == 17)
-            //Arrow Axis -1,0,1
-            //event.code = av or ah
-            axis_values[event.code] = event.value
-          else
-            axis_values[event.type] = event.value;//Going to call {"controller":[]}
+          axis_values[event.type] = event.value;//Going to call {"controller":[]}
           return axis_values;
         })
         //Code 16, Status -1,0,1
@@ -84,6 +83,29 @@ function App() {
             delete next[event.code]
             else
               next[event.code] = true //Key is pressed
+            return next;
+          })
+          break;
+        case "arrows":
+          setControllerValue(prev => {
+            const next = {...prev}
+            //Sets all axis to
+            if(event.code == 16)
+            {
+              next["ah_n"] = "ah_n"===event.value,
+              next["ah_p"] =  "ah_p"===event.value
+              //Removes the other half...
+              delete next["av_n"];
+              delete next["av_p"];
+              
+            }
+            else
+            {
+              next["av_n"] = "av_n"===event.value,
+              next["av_p"] = "av_p"===event.value
+              delete next["ah_n"];
+              delete next["ah_p"];
+            }
             return next;
           })
           break;
@@ -162,14 +184,7 @@ function Axis({axis_value,axis_side,AxisIcons})
       }
     </div>
   )
-
 }
-// Assign them a device and set output per device to that one specific device
-function Arrow({})
-{
-  
-}
-
 
 function Controller({layout,controllerPressed,controllerAxis,buttonSize=73})
 {
@@ -189,7 +204,6 @@ function Controller({layout,controllerPressed,controllerAxis,buttonSize=73})
               console.warn("Missing Button for ",button,isPressed);
               return null;
             }
-
             return(
             <Icon
               key = {button}
