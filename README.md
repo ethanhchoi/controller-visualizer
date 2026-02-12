@@ -1,16 +1,20 @@
-# React + Vite
+# Device Visualizer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+**Goal: Visualizes Keyboards and Controllers in Ubuntu for the competition. It will be helpful to gauge inputs of the rover with this visualizer**
+<img width="805" height="927" alt="Screenshot 2026-02-12 021300" src="https://github.com/user-attachments/assets/61323d62-dac6-466b-9f2f-88d2b9ce07ad" />
 
-Currently, two official plugins are available:
+## Features
+- Scalable Size Keyboard
+- Controller[Not Scalable]
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Changable Parameters
+- Unpressed/Pressed Color can be changed
+- Background Color can be changed
+- Text can be changed
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Things I might work on
+-  Can’t be scaled Vertically[Basically is locked to as is unless I come back to this project]
+- Mouse can be added later
+- Can’t assign more than one device to Keyboard [Multiple keyboards will count as one]
+- No refresh feature to add devices 
+- No Pause inputs feature
