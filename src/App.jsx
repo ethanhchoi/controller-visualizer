@@ -31,6 +31,7 @@ let high_trig_color = "#26611A"
 const unpressed_colors = "#717267"
 const pressed_colors = "#5776FF"
 
+const background_color = "#FCFFCC"
 
 //const Filled_Controller_Colors = {"bumper":"#5776FF"}
 
@@ -133,7 +134,7 @@ function App() {
     })},[])
   //I'll ask him if we need to track recent text. 
   //Options to choose your own color? 
-  return(<div>
+  return(<div style = {{backgroundColor:background_color}}>
     <h1>
       Keyboard + Controller Visualizer
     </h1>
@@ -224,10 +225,7 @@ function Controller({triggerValue,controllerPressed,controllerAxis,buttonSize=73
   //Deifned Vertical buttons
   let Triangle = ControllerIcons["north"]
   let X = ControllerIcons["a"]
-  //const ver_buttons = [{key:"north",Icon:ControllerIcons["north"]},{key:"a",Icon:ControllerIcons["a"]}]
-
-  //height = {2.28 * buttonSize}
-  //width = {1.23 * buttonSize}
+ 
   return (
     <div className = "Controller">
       <div className = "Triggers">
