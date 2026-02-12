@@ -27,7 +27,7 @@ app.whenReady().then(() => {
 
   py.stdout.on('data', (data) => {
     const lines = data.toString().trim().split("\n");
-    console.log(lines)//<== Prints content out
+    //console.log(lines)
     lines.forEach(line => {
       try {
       const event = JSON.parse(line);

@@ -15,6 +15,7 @@ joysticks = {}
 controller_axis = [0,45,90,135,180,225,270,315]
 last_coords = []
 arrow_axis = {16:"ah",17:"av"}
+deadzone = 0.1
 
 print("Detected:",pygame.joystick.get_count(),"joysticks")
 
@@ -78,13 +79,6 @@ async def read_device(device, device_type):
             
             #Mouse + Controller Buttons here
 
-            #X Direction Button X_B
-            #Y Direction Button Y_B
-            #if(event.code == 16):
-            #    btn_code = "X_B"
-            #if(event.code == 17):
-            #    btn_code = "Y_B"
-
             #Default to the first_code option
             if(len(btn_code)<4):
                 btn_code = btn_code[0]
@@ -116,7 +110,7 @@ async def read_device(device, device_type):
             if(event.code == 2 or event.code == 5):
                 #If triggers, else
                 data = {
-                    "type": device_type,
+                    "type": "triggers",
                     "device": device.name,
                     "input": "axis",
                     "code": event.code,
@@ -136,13 +130,12 @@ async def read_device(device, device_type):
                 #Dict = {16:"av_p"/"av_n", 17: "av_p"/"av_n"}
                 #This dictates direction of that specific axis
                 axis_dir = event.value
-                print(axis_dir)
                 if(event.value!=0):
                     set_dir = "av" if(event.code==17) else "ah"#code
                     set_opt = "_p" if(event.value == 1) else "_n"#val
                     axis_dir = set_dir + set_opt
                 data = {
-                    "type": device_type,
+                    "type": "arrows",
                     "device": device.name,
                     "input": "button",
                     "code": event.code,
@@ -156,7 +149,7 @@ async def read_device(device, device_type):
                 #Get the Controller Associated with Event.
                 controller = joysticks[device.name]
                 #Apply Lambda function to all values here
-                deadzone_value = lambda x: 0 if abs(x) < 0.06 else round(x,2)
+                deadzone_value = lambda x: 0 if abs(x) < deadzone else round(x,2)
                 #If previous_axes = [0,0,0,0] --> Don't fire?
                 left_x,left_y,right_x,right_y = deadzone_value(controller.get_axis(0)),deadzone_value(controller.get_axis(1)),deadzone_value(controller.get_axis(3)),deadzone_value(controller.get_axis(4))
                 axis_coords = [None,None]

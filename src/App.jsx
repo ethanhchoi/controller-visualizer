@@ -7,7 +7,7 @@ import  ControllerOutline from "../assets/Controller/outline.svg?react"
 import {MouseIcons} from "../assets/Mouse/sides"
 import MouseOutline from "../assets/Mouse/body.svg?react" 
 import {AxisIcons} from "../assets/Controller/joystick"
-
+import "./App.css"
 const KEY_LAYOUT = [
   ["grave","1","2","3","4","5","6","7","8","9","0","minus","equal","backspace"],
   ["tab","q","w","e","r","t","y","u","i","o","p","leftbrace","rightbrace","backslash"],
@@ -17,14 +17,23 @@ const KEY_LAYOUT = [
   ];
 
 const CONTROLLER_LAYOUT = [
-  ["left","right"],
-  ["tl","tr"],
-  ["select","center","start"],
-  ["north","west","a","b"]
+  ["ah_n","ah_p","av_n","av_p"],//Same Scale
+  ["north","west","a","b"]//Same Scale
 ];
 const MOUSE_LAYOUT = [
   ["left","right"],
 ]
+//const controller_scale = {"triggers":,"bumpers":,"buttons","arrow","joystick"}
+let low_trig_color = "#59E73D"
+let med_trig_color = "#3B9A28"
+let high_trig_color = "#26611A"
+
+const unpressed_colors = "#717267"
+const pressed_colors = "#5776FF"
+
+
+//const Filled_Controller_Colors = {"bumper":"#5776FF"}
+
 //Arrow Value: {"ah_n":false}
 //arrowValue[event.code] = event.value
 //16:ah_n | ah_p | 0
@@ -36,7 +45,7 @@ function App() {
   const [controllerPressed,setControllerValue] = useState({});
   const [mouseValue,setMouseValue] = useState({});
   const [controllerAxis,setAxisValue] = useState({});
-  //const [arrowValue,setArrowValue] = useState({});
+  const [triggerValue,setTriggerValue] = useState({});
   
   //Store 2 Axis: {"L":[X,Y],"R":[X,Y]}
   useEffect(() => {
@@ -89,40 +98,47 @@ function App() {
         case "arrows":
           setControllerValue(prev => {
             const next = {...prev}
-            //Sets all axis to
+            //Sets alll Arrows to a value
             if(event.code == 16)
             {
               next["ah_n"] = "ah_n"===event.value,
               next["ah_p"] =  "ah_p"===event.value
-              //Removes the other half...
-              delete next["av_n"];
-              delete next["av_p"];
-              
+              //Auto fills to false
+              //Since we know these values can't be activated simmultaneously
+              next["av_n"] = false;
+              next["av_p"] = false;
             }
             else
             {
               next["av_n"] = "av_n"===event.value,
               next["av_p"] = "av_p"===event.value
-              delete next["ah_n"];
-              delete next["ah_p"];
+              next["ah_n"] = false
+              next["ah_p"] =  false
             }
+              
             return next;
           })
           break;
+        case "triggers":
+          setTriggerValue(prev => {
+            const next = {...prev}
+            //if(event.value ===  0)
+              //delete next[event.code]
+            //else
+              //Values go from 0 - 255 instead of 0 or 1
+            next[event.code] = 255 - event.value
+            return next;
+          })
       }
     })},[])
   //I'll ask him if we need to track recent text. 
   //Options to choose your own color? 
   return(<div>
     <h1>
-      Keyboard + Controller Global Listener
+      Keyboard + Controller Visualizer
     </h1>
-    <p>
-      Text will be placed here
-    </p>
-    
     <Keyboard layout = {KEY_LAYOUT} pressedButtons = {buttonPressed}/>
-    <Controller layout = {CONTROLLER_LAYOUT} controllerPressed = {controllerPressed} controllerAxis = {controllerAxis}/>
+    <Controller layout = {CONTROLLER_LAYOUT} triggerValue = {triggerValue} controllerPressed = {controllerPressed} controllerAxis = {controllerAxis}/>
   </div>);
 
 }
@@ -185,37 +201,86 @@ function Axis({axis_value,axis_side,AxisIcons})
     </div>
   )
 }
-
-function Controller({layout,controllerPressed,controllerAxis,buttonSize=73})
+function Controller({triggerValue,controllerPressed,controllerAxis,buttonSize=73})
 {
   //position:"absolute"
-  console.log("ControllerAxis:",controllerAxis["controller"])
+  const LeftTrig = ControllerIcons["left"]
+  const RightTrig = ControllerIcons["right"]
+  //For thing in list
+  const bumpers = [{key:"tl",Icon:ControllerIcons["tl"]},{key:"tr",Icon:ControllerIcons["tr"]}]
+  let Select =ControllerIcons["select"]
+  let Center = ControllerIcons["center"]//size:buttonSize * 3.92}
+  let Start = ControllerIcons["start"]//,size:buttonSize}]
+  
+  //Defined Vertical Arrows
+
+  //const ver_arrows = [{key:"av_n",Icon:ControllerIcons["av_n"]},{key:"av_p",Icon:ControllerIcons["av_p"]}]
+  let BottomArrow = ControllerIcons["av_p"]
+  let TopArrow = ControllerIcons["av_n"]
+  const hor_arrows = [{key:"ah_n",Icon:ControllerIcons["ah_n"]},{key:"ah_p",Icon:ControllerIcons["ah_p"]}]
+  
+  
+  const hor_buttons = [{key:"west",Icon:ControllerIcons["west"]},{key:"b",Icon:ControllerIcons["b"]}]
+  //Deifned Vertical buttons
+  let Triangle = ControllerIcons["north"]
+  let X = ControllerIcons["a"]
+  //const ver_buttons = [{key:"north",Icon:ControllerIcons["north"]},{key:"a",Icon:ControllerIcons["a"]}]
+
+  //height = {2.28 * buttonSize}
+  //width = {1.23 * buttonSize}
   return (
     <div className = "Controller">
-      <ControllerOutline className = "Controller-Bg" style = {{fill:"blue"}}/>
-      {layout.map((row,rowIndex) => (
-        <div key = {rowIndex} className = "Controller Button">
-          {row.map(button => {
-            const isPressed = !!controllerPressed[button];
-            const Icon = ControllerIcons[button];
-            
-            if(!Icon)
-            {
-              console.warn("Missing Button for ",button,isPressed);
-              return null;
-            }
-            return(
-            <Icon
-              key = {button}
-              width =  {buttonSize}
-              height = {1.25 * buttonSize}
-              style = {{fill: isPressed ? "blue" : "green"}}
-            />)
-          })}
+      <div className = "Triggers">
+        <LeftTrig style = {{fill: (triggerValue[2] < 86) ? high_trig_color : (triggerValue[2] < 171) ? med_trig_color : low_trig_color}}/>
+        <RightTrig style = {{fill: (triggerValue[5] < 86) ? high_trig_color : (triggerValue[5] < 171) ? med_trig_color : low_trig_color}}/>
+      </div>
+      <div className = "Bumpers">
+        {bumpers.map(({key,Icon}) => (
+          <Icon key = {key}  style = {{fill: !!controllerPressed[key] ? pressed_colors : unpressed_colors}}/>
+        ))}
+      </div>
+      <ControllerOutline className = "Controller-Bg" width = {buttonSize * 9.26} style = {{fill:"white"}}/>
+      
+      <div className = "center">
+        <Select className = "side_button" style = {{fill:!!controllerPressed["select"] ? pressed_colors : unpressed_colors}}/>
+        <Center style = {{fill:"white"}}/>
+        <Start className = "side_button" style = {{fill:!!controllerPressed["start"] ? pressed_colors : unpressed_colors}}/>
+      </div>
+
+      <div className = "Arrows">
+        <div className="topArrow">
+          <TopArrow key = {"topArrow"} style = {{fill:!!controllerPressed["av_n"] ? pressed_colors : unpressed_colors}}/>
         </div>
-      ))}
-      <Axis axis_value = {controllerAxis["controller"] || [null, null]} axis_side = {0} AxisIcons = {AxisIcons}/>
-      <Axis axis_value = {controllerAxis["controller"] || [null, null]} axis_side = {1} AxisIcons = {AxisIcons}/>
+        <div className = "HorArrows">
+          {hor_arrows.map(({key,Icon})=>(
+              <Icon key = {key} style = {{fill:!!controllerPressed[key] ? pressed_colors : unpressed_colors}}/>
+            ))}
+        </div>
+        <div className = "bottomArrow">
+          <BottomArrow key = {"bottomArrow"} style = {{fill:!!controllerPressed["av_p"] ? pressed_colors : unpressed_colors}}/>
+        </div>
+      </div>
+
+
+      <div className = "Buttons">
+        <div className = "topButton">
+          <Triangle key = {"triangle"} style = {{fill:!!controllerPressed["north"] ? pressed_colors : unpressed_colors}}/>
+        </div>
+        <div className = "HorButtons">
+          {hor_buttons.map(({key,Icon})=>(
+              <Icon key = {key} style = {{fill:!!controllerPressed[key] ? pressed_colors : unpressed_colors}}/>
+            ))}
+        </div>
+        <div>
+          <X key = {"X"} style = {{fill:!!controllerPressed["a"] ? pressed_colors : unpressed_colors}}/>
+        </div>
+        
+      </div> 
+      
+      <div className = "axis">
+        <Axis axis_value = {controllerAxis["controller"] || [null, null]} axis_side = {0} AxisIcons = {AxisIcons}/>
+        <Axis axis_value = {controllerAxis["controller"] || [null, null]} axis_side = {1} AxisIcons = {AxisIcons}/>
+      </div>
     </div>
   )
 }
